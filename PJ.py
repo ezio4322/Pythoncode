@@ -16,13 +16,13 @@ file_subparser = subparsers.add_parser(name=FILE_SUBPARSER, help='Handle file op
 # This is where you add arguments
 file_subparser.add_argument('--source', dest='source_data', action='store', required=True,
                             help='Path to the input file/directory')
-file_subparser.add_argument('--create', dest='create_data', action='store',
+file_subparser.add_argument('--create', dest='create_flag', action='store_true',
                             help='Create file at input path')
 file_subparser.add_argument('--read', dest='read_data', action='store',
                             help='Read file at input path')
 file_subparser.add_argument('--update', dest='update_data', action='store',
                             help='Update file at input path')
-file_subparser.add_argument('--delete', dest='delete_data', action='store',
+file_subparser.add_argument('--delete', dest='delete_flag', action='store_true',
                             help='Delete file at input path')
 
 dir_subparser = subparsers.add_parser(name=DIR_SUBPARSER, help='Handle directory operations')
@@ -40,35 +40,35 @@ dir_subparser.add_argument('--delete', dest='delete_flag', action='store_true',
 
 def file_op_handler(arg: argparse.Namespace):
     # this is the field where your input data is stored
-    if arg.create_data:
+    if arg.create_flag:
         create_file(arg)
     if arg.read_data:
         read_file(arg)
     if arg.update_data:
         update_file(arg)
-    if arg.delete_data:
+    if arg.delete_flag:
         delete_file(arg)
 
 
 def create_file(arg: argparse.Namespace):
     print('creating file')
-    if os.path.exists(arg.source_data + '/' + arg.create_data):
+    if os.path.exists(arg.source_data):
         print('File/directory with same name already exists')
     else:
         p_list = arg.source_data.split('/')
         p_path = p_list[0]
         i = 0
-        while i < len(p_list) - 1:
+        while i < len(p_list) - 2:
             if os.path.isdir(p_path + '/' + p_list[i + 1]):
                 i += 1
                 p_path += '/' + p_list[i]
             else:
                 break
-        while i < len(p_list) - 1:
+        while i < len(p_list) - 2:
             i += 1
             p_path += '/' + p_list[i]
             os.mkdir(p_path)
-        p_path += '/' + arg.create_data
+        p_path += '/' + p_list[len(p_list)-1]
         with open(p_path, mode='w'):
             print('Successfully created file')
 
@@ -94,8 +94,8 @@ def update_file(arg: argparse.Namespace):
 
 def delete_file(arg: argparse.Namespace):
     print('deleting file')
-    if os.path.isfile(arg.source_data + '/' + arg.delete_data):
-        os.remove(arg.source_data + '/' + arg.delete_data)
+    if os.path.isfile(arg.source_data):
+        os.remove(arg.source_data)
         print('deleted')
     else:
         print('no file at input path')
