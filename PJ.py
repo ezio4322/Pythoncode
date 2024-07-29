@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import time
 
 FILE_SUBPARSER = 'file'
 DIR_SUBPARSER = 'directory'
@@ -22,6 +23,14 @@ file_subparser.add_argument('--read', dest='read_data', action='store',
                             help='Read file at input path')
 file_subparser.add_argument('--update', dest='update_data', action='store',
                             help='Update file at input path')
+file_subparser.add_argument('--search', dest='search_data', action='store',
+                            help='Search for file at input path')
+file_subparser.add_argument('--info', dest='info_flag', action='store_true',
+                            help='Information of file at input path')
+file_subparser.add_argument('--copy', dest='copy_data', action='store',
+                            help='Copy file at input path')
+file_subparser.add_argument('--hardlink', dest='hardlink_data', action='store',
+                            help='Hard-linking file at input path')
 file_subparser.add_argument('--delete', dest='delete_flag', action='store_true',
                             help='Delete file at input path')
 
@@ -33,6 +42,10 @@ dir_subparser.add_argument('--create', dest='create_flag', action='store_true',
                            help='Create directory at input path')
 dir_subparser.add_argument('--read', dest='read_flag', action='store_true',
                            help='Read file at input path')
+dir_subparser.add_argument('--search', dest='search_data', action='store',
+                           help='Search for directory at input path')
+dir_subparser.add_argument('--info', dest='info_flag', action='store_true',
+                           help='Information of directory at input path')
 dir_subparser.add_argument('--delete', dest='delete_flag', action='store_true',
                            help='Delete directory at input path')
 # TODO: add the rest of the arguments
@@ -46,6 +59,14 @@ def file_op_handler(arg: argparse.Namespace):
         read_file(arg)
     if arg.update_data:
         update_file(arg)
+    if arg.search_data:
+        search_file(arg)
+    if arg.info_flag:
+        info_file(arg)
+    if arg.copy_data:
+        copy_file(arg)
+    if arg.hardlink_data:
+        hardlink_file(arg)
     if arg.delete_flag:
         delete_file(arg)
 
@@ -53,24 +74,13 @@ def file_op_handler(arg: argparse.Namespace):
 def create_file(arg: argparse.Namespace):
     print('creating file')
     if os.path.exists(arg.source_data):
-        print('File/directory with same name already exists')
+        print('file/directory with same name already exists')
     else:
-        p_list = arg.source_data.split('/')
-        p_path = p_list[0]
-        i = 0
-        while i < len(p_list) - 2:
-            if os.path.isdir(p_path + '/' + p_list[i + 1]):
-                i += 1
-                p_path += '/' + p_list[i]
-            else:
-                break
-        while i < len(p_list) - 2:
-            i += 1
-            p_path += '/' + p_list[i]
-            os.mkdir(p_path)
-        p_path += '/' + p_list[len(p_list)-1]
+        p_path, f_name = os.path.split(arg.source_data)
+        os.makedirs(p_path)
+        p_path = os.path.join(p_path, f_name)
         with open(p_path, mode='w'):
-            print('Successfully created file')
+            print('successfully created file')
 
 
 def read_file(arg: argparse.Namespace):
@@ -92,6 +102,71 @@ def update_file(arg: argparse.Namespace):
         print('no file at input path')
 
 
+def search_file(arg: argparse.Namespace):
+    print('searching file')
+    if os.path.isdir(arg.source_data):
+        print('directory exists, searching for file')
+        p_list = []
+        for d_path, dir_list, file_list in os.walk(arg.source_data):
+            for i in file_list:
+                if i == arg.search_data:
+                    p_list.append(os.path.join(d_path, i))
+        if p_list:
+            print('there were ', len(p_list), ' instance(s) with file name:', arg.search_data)
+            for i in p_list:
+                print(i)
+        else:
+            print('no file found')
+    else:
+        print('no directory at input path')
+
+
+def info_file(arg: argparse.Namespace):
+    print('info file')
+    if os.path.isfile(arg.source_data):
+        stat_l = os.stat(arg.source_data)
+        print('size of file: ', stat_l.st_size, 'bytes')
+        print('creation date of file: ', time.asctime(time.localtime(stat_l.st_ctime)))
+        print('last modification date of file: ', time.asctime(time.localtime(stat_l.st_mtime)))
+        print('number of inodes: ', stat_l.st_ino)
+        print('number of hardlinks: ', stat_l.st_nlink)
+    else:
+        print('no file at input path')
+
+
+def copy_file(arg: argparse.Namespace):
+    print('copying file')
+    if os.path.isfile(arg.source_data):
+        if os.path.isdir(arg.copy_data):
+            p_split = os.path.split(arg.source_data)
+            p_path = os.path.join(arg.copy_data, p_split[1])
+            if os.path.exists(p_path):
+                print('file/directory with same name already exists')
+            else:
+                if not os.path.isdir(arg.copy_data):
+                    os.makedirs(arg.copy_data)
+                with open(p_path, mode='w'):
+                    print('file created')
+            shutil.copyfile(arg.source_data, p_path)
+            print('successfully copied file')
+        else:
+            print('no directory at input path')
+    else:
+        print('no file at input path')
+
+
+def hardlink_file(arg: argparse.Namespace):
+    print('hard-linking file')
+    if os.path.isfile(arg.source_data):
+        if not (os.path.exists(arg.hardlink_data)):
+            os.link(arg.source_data, arg.hardlink_data)
+            print('successfully hard-linked file')
+        else:
+            print('file/directory with same name exists at input path')
+    else:
+        print('no file at input path')
+
+
 def delete_file(arg: argparse.Namespace):
     print('deleting file')
     if os.path.isfile(arg.source_data):
@@ -106,6 +181,10 @@ def dir_op_handler(arg: argparse.Namespace):
         create_dir(arg)
     if arg.read_flag:
         read_dir(arg)
+    if arg.search_data:
+        search_dir(arg)
+    if arg.info_flag:
+        info_dir(arg)
     if arg.delete_flag:
         delete_dir(arg)
 
@@ -115,20 +194,8 @@ def create_dir(arg: argparse.Namespace):
     if os.path.exists(arg.source_data):
         print('File/directory with same name already exists')
     else:
-        p_list = arg.source_data.split('/')
-        p_path = p_list[0]
-        i = 0
-        while i < len(p_list) - 1:
-            if os.path.isdir(p_path + '/' + p_list[i + 1]):
-                i += 1
-                p_path += '/' + p_list[i]
-            else:
-                break
-        while i < len(p_list) - 1:
-            i += 1
-            p_path += '/' + p_list[i]
-            os.mkdir(p_path)
-        print('Successfully created directory')
+        os.makedirs(arg.source_data)
+        print('successfully created directory')
 
 
 def read_dir(arg: argparse.Namespace):
@@ -139,6 +206,44 @@ def read_dir(arg: argparse.Namespace):
             print(os.listdir(arg.source_data))
         else:
             print('directory is empty')
+    else:
+        print('no directory at input path')
+
+
+def search_dir(arg: argparse.Namespace):
+    print('searching directory')
+    if os.path.isdir(arg.source_data):
+        print('directory exists, searching for directory')
+        p_list = []
+        for d_path, dir_list, file_list in os.walk(arg.source_data):
+            for i in dir_list:
+                if i == arg.search_data:
+                    p_list.append(os.path.join(d_path, i))
+        if p_list:
+            print('there were ', len(p_list), ' instance(s) with directory name:', arg.search_data)
+            for i in p_list:
+                print(i)
+        else:
+            print('no directory found')
+    else:
+        print('no directory at input path')
+
+
+def info_dir(arg: argparse.Namespace):
+    print('info directory')
+    if os.path.isdir(arg.source_data):
+        f_number = 0
+        d_number = 0
+        d_size = 0
+        for d_path, dir_list, file_list in os.walk(arg.source_data):
+            for i in file_list:
+                f_number += 1
+                d_size += os.path.getsize(os.path.join(d_path, i))
+            for i in dir_list:
+                d_number += 1
+        print('the directory size is:', d_size, ' bytes')
+        print('the directory has:', f_number, ' files')
+        print('the directory has:', d_number, ' directories')
     else:
         print('no directory at input path')
 
@@ -174,12 +279,20 @@ if __name__ == '__main__':
 
 # Command looks something like this
 
-# python3 PJ.py file --source /home/cosmin/test --create tst.txt
-# python3 PJ.py file --source /home/cosmin/test/crazy/hamburger --create tst.txt
+# python3 PJ.py file --source /home/cosmin/test/tst.txt --create
+# python3 PJ.py file --source /home/cosmin/test/crazy/hamburger/tst.txt --create
 # python3 PJ.py file --source /home/cosmin/test/words.txt --read 1000
 # python3 PJ.py file --source /home/cosmin/test/words.txt --update hamburger
-# python3 PJ.py file --source /home/cosmin/test --delete whatever.txt
+# python3 PJ.py file --source /home/cosmin/test/whatever.txt --delete
 
 # python3 PJ.py directory --source /home/cosmin/test/burger --create
 # python3 PJ.py directory --source /home/cosmin/test --read
 # python3 PJ.py directory --source /home/cosmin/test/burger --delete
+
+# python3 PJ.py file --source /home/cosmin/test --search text.txt
+# python3 PJ.py file --source /home/cosmin/test/text.txt --info
+# python3 PJ.py file --source /home/cosmin/test/text.txt --copy /home/cosmin/test/dir69
+# python3 PJ.py file --source /home/cosmin/test/text.txt --hardlink /home/cosmin/test/hard_dir
+
+# python3 PJ.py directory --source /home/cosmin/test --search dir
+# python3 PJ.py directory --source /home/cosmin/test --info
