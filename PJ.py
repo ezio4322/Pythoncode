@@ -77,7 +77,7 @@ def create_file(arg: argparse.Namespace):
         print('file/directory with same name already exists')
     else:
         p_path, f_name = os.path.split(arg.source_data)
-        os.makedirs(p_path)
+        os.makedirs(p_path, exist_ok=True)
         p_path = os.path.join(p_path, f_name)
         with open(p_path, mode='w'):
             print('successfully created file')
@@ -104,21 +104,20 @@ def update_file(arg: argparse.Namespace):
 
 def search_file(arg: argparse.Namespace):
     print('searching file')
-    if os.path.isdir(arg.source_data):
-        print('directory exists, searching for file')
-        p_list = []
-        for d_path, dir_list, file_list in os.walk(arg.source_data):
-            for i in file_list:
-                if i == arg.search_data:
-                    p_list.append(os.path.join(d_path, i))
-        if p_list:
-            print('there were ', len(p_list), ' instance(s) with file name:', arg.search_data)
-            for i in p_list:
-                print(i)
-        else:
-            print('no file found')
-    else:
+    if not os.path.isdir(arg.source_data):
         print('no directory at input path')
+        return
+    print('directory exists, searching for file')
+    p_list = []
+    for d_path, dir_list, file_list in os.walk(arg.source_data):
+        if arg.search_data in file_list:
+            p_list.append(os.path.join(d_path, arg.search_data))
+    if not p_list:
+        print('no file found')
+        return
+    print('there were ', len(p_list), ' instance(s) with file name:', arg.search_data)
+    for i in p_list:
+        print(i)
 
 
 def info_file(arg: argparse.Namespace):
@@ -192,7 +191,7 @@ def dir_op_handler(arg: argparse.Namespace):
 def create_dir(arg: argparse.Namespace):
     print('creating directory')
     if os.path.exists(arg.source_data):
-        print('File/directory with same name already exists')
+        print('file/directory with same name already exists')
     else:
         os.makedirs(arg.source_data)
         print('successfully created directory')
@@ -212,21 +211,20 @@ def read_dir(arg: argparse.Namespace):
 
 def search_dir(arg: argparse.Namespace):
     print('searching directory')
-    if os.path.isdir(arg.source_data):
-        print('directory exists, searching for directory')
-        p_list = []
-        for d_path, dir_list, file_list in os.walk(arg.source_data):
-            for i in dir_list:
-                if i == arg.search_data:
-                    p_list.append(os.path.join(d_path, i))
-        if p_list:
-            print('there were ', len(p_list), ' instance(s) with directory name:', arg.search_data)
-            for i in p_list:
-                print(i)
-        else:
-            print('no directory found')
-    else:
+    if not os.path.isdir(arg.source_data):
         print('no directory at input path')
+        return
+    print('directory exists, searching for directory')
+    p_list = []
+    for d_path, dir_list, file_list in os.walk(arg.source_data):
+        if arg.search_data in dir_list:
+            p_list.append(os.path.join(d_path, arg.search_data))
+    if not p_list:
+        print('no directory found')
+        return
+    print('there were ', len(p_list), ' instance(s) with directory name:', arg.search_data)
+    for i in p_list:
+        print(i)
 
 
 def info_dir(arg: argparse.Namespace):
