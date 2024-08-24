@@ -92,7 +92,7 @@ def validate_product(path):
     with open('/home/cosmin/Desktop/pyth/projects/pyPJ1/server_stuff/json_products', mode='a') as f:
         f.write(f'{json.dumps(new_element)}\n')
     with open('/home/cosmin/Desktop/pyth/projects/pyPJ1/server_stuff/products_html', mode='a') as f:
-        f.write(f'  <tr>\n   <td>{name[1]}</td>\n   <td>{price[1]}</td>\n   <td>{count[1]}</td>\n   </tr>\n')
+        f.write(f'  <tr>\n   <td>{name[1]}</td>\n    <td>{price[1]}</td>\n   <td>{count[1]}</td>\n  </tr>\n')
     with open('/home/cosmin/Desktop/pyth/projects/pyPJ1/server_stuff/products_html', mode='r') as f:
         content = f.read()
     with open('/home/cosmin/Desktop/pyth/projects/pyPJ1/server_stuff/accessible/pages/products.html', mode='w') as f:
