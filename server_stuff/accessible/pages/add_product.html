@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add product</title>
+</head>
+<body>
+
+<a href="http://127.0.0.1:8080/pages/products.html">
+    <button  style="font-size:150%">Products</button>
+</a>
+
+<h2>Product add-in</h2>
+
+<p>Fill in the descriptors of the new product.</p>
+
+<form action="/adding">
+  <fieldset>
+    <legend>Descriptors:</legend>
+    <label for="pname">Product name:</label><br>
+    <input type="text" id="pname" name="pname" value="banana"><br>
+    <label for="price">Price per product:</label><br>
+    <input type="text" id="price" name="price" value="2.2"><br>
+    <label for="count">Available product stock:</label><br>
+    <input type="text" id="count" name="count" value="43"><br><br>
+    <input type="submit" value="Submit">
+  </fieldset>
+</form>
+
+</body>
+</html>

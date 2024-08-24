@@ -2,7 +2,7 @@ import os
 import json
 
 p_path = '/home/cosmin/Logs/TID'
-time = '2024-08-15'
+time = '2024-08-17'
 user = '269142149150212'
 
 time_interval = 30
